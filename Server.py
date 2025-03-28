@@ -10,12 +10,17 @@ Server = Flask(__name__)
 
 
 def get_db_connection():
+    # Debugging: Print environment variables before connecting
+    print("🔹 MYSQL_HOST:", os.getenv('MYSQL_HOST'))
+    print("🔹 MYSQL_PORT:", os.getenv('MYSQL_PORT'))
+    print("🔹 MYSQL_USER:", os.getenv('MYSQL_USER'))
+
     return mysql.connector.connect(
-        host=os.getenv('MYSQL_HOST', 'localhost'),  # Default to localhost if not set
-        port=int(os.getenv('MYSQL_PORT','3307')),
-        user=os.getenv('MYSQL_USER', 'root'),  # Default to root if not set
-        password=os.getenv('MYSQL_PASSWORD', 'Programmer01!'),  # Default to empty if not set
-        database=os.getenv('MYSQL_DATABASE', 'login_system')  # Default to 'login_system' if not set
+        host=os.getenv('MYSQL_HOST', 'localhost'),
+        port=int(os.getenv('MYSQL_PORT', 3307)),  # Ensure correct port
+        user=os.getenv('MYSQL_USER', 'root'),
+        password=os.getenv('MYSQL_PASSWORD', 'Programmer01!'),
+        database=os.getenv('MYSQL_DATABASE', 'login_system')
     )
 
 
