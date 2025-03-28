@@ -1,59 +1,57 @@
 from flask import Flask, request, jsonify
 import mysql.connector
+import os
+from dotenv import load_dotenv
 
-app = Flask(__name__)
+# Load environment variables from the .env file
+load_dotenv()
+
+Server = Flask(__name__)
+
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="login_system"
+        host=os.getenv('MYSQL_HOST', 'localhost'),  # Default to localhost if not set
+        port=int(os.getenv('MYSQL_PORT','3307')),
+        user=os.getenv('MYSQL_USER', 'root'),  # Default to root if not set
+        password=os.getenv('MYSQL_PASSWORD', 'Programmer01!'),  # Default to empty if not set
+        database=os.getenv('MYSQL_DATABASE', 'login_system')  # Default to 'login_system' if not set
     )
 
-# 👇 ADD THIS ROUTE TO TEST SERVER IS UP
-@app.route('/')
-def home():
-    return "Hello from Flask!"
 
-@app.route('/register', methods=['POST'])
+@Server.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-
-    if not data or 'username' not in data or 'password' not in data:
-        return jsonify(success=False, message="Invalid input"), 400
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (data['username'], data['password']))
-        conn.commit()
+        data = request.get_json()  # Get the data sent by the client
+
+        if not data or 'username' not in data or 'password' not in data:
+            return jsonify(success=False, message="Invalid input"), 400  # Invalid input check
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Check if username already exists
+        cursor.execute("SELECT * FROM users WHERE username=%s", (data['username'],))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            return jsonify(success=False, message="Username already exists"), 400
+
+        # Insert the user into the database
+        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)",
+                       (data['username'], data['password']))
+        conn.commit()  # Commit the changes to the database
         return jsonify(success=True, message="User registered successfully")
+
     except mysql.connector.Error as e:
         print("❌ MySQL Error:", e)
-        return jsonify(success=False, message="Username already exists or database error"), 500
+        return jsonify(success=False, message=f"Database error: {str(e)}"), 500
+    except Exception as e:
+        print("❌ General Error:", e)
+        return jsonify(success=False, message=f"Unexpected error: {str(e)}"), 500
     finally:
         cursor.close()
         conn.close()
 
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-
-    if not data or 'username' not in data or 'password' not in data:
-        return jsonify(success=False, message="Invalid input"), 400
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (data['username'], data['password']))
-    user = cursor.fetchone()
-    cursor.close()
-    conn.close()
-
-    if user:
-        return jsonify(success=True, message="Login successful")
-    else:
-        return jsonify(success=False, message="Invalid username or password")
 
 if __name__ == "__main__":
-    app.run(port=8000)
+    Server.run(host='0.0.0.0', port=8000)
