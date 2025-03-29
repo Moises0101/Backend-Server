@@ -2,7 +2,8 @@ from flask import Flask, request, jsonify
 import mysql.connector
 import os
 from dotenv import load_dotenv
-
+import mysql.connector
+print("MySQL Connector is installed and working!")
 # Load environment variables from the .env file
 load_dotenv()
 
@@ -10,41 +11,54 @@ Server = Flask(__name__)
 
 
 def get_db_connection():
-    # Debugging: Print environment variables before connecting
-    print("🔹 MYSQL_HOST:", os.getenv('MYSQL_HOST'))
-    print("🔹 MYSQL_PORT:", os.getenv('MYSQL_PORT'))
-    print("🔹 MYSQL_USER:", os.getenv('MYSQL_USER'))
-
-    return mysql.connector.connect(
-        host=os.getenv('MYSQL_HOST', 'localhost'),
-        port=int(os.getenv('MYSQL_PORT', 3307)),  # Ensure correct port
-        user=os.getenv('MYSQL_USER', 'root'),
-        password=os.getenv('MYSQL_PASSWORD', 'Programmer01!'),
-        database=os.getenv('MYSQL_DATABASE', 'login_system')
-    )
+    try:
+        print("🔹 Attempting MySQL connection...")  # Debugging log
+        conn = mysql.connector.connect(
+            host=os.getenv('MYSQL_HOST', 'localhost'),
+            port=int(os.getenv('MYSQL_PORT', 3307)),
+            user=os.getenv('MYSQL_USER', 'root'),
+            password=os.getenv('MYSQL_PASSWORD', 'Programmer01!'),
+            database=os.getenv('MYSQL_DATABASE', 'login_system')
+        )
+        print("✅ MySQL connection successful!")  # Debugging log
+        return conn
+    except mysql.connector.Error as e:
+        print("❌ MySQL Connection Error:", e)
+        return None
 
 
 @Server.route('/register', methods=['POST'])
 def register():
+    print("🔹 Received a registration request")  # Debugging log
+
     try:
-        data = request.get_json()  # Get the data sent by the client
+        data = request.get_json()
+        print("📥 Received Data:", data)  # Debugging log
 
         if not data or 'username' not in data or 'password' not in data:
-            return jsonify(success=False, message="Invalid input"), 400  # Invalid input check
+            print("❌ Invalid input data!")
+            return jsonify(success=False, message="Invalid input"), 400
 
         conn = get_db_connection()
+        if not conn:
+            print("❌ Database connection failed!")
+            return jsonify(success=False, message="Database connection failed"), 500
+
         cursor = conn.cursor()
 
-        # Check if username already exists
+        # Check if the username already exists
         cursor.execute("SELECT * FROM users WHERE username=%s", (data['username'],))
         existing_user = cursor.fetchone()
+
         if existing_user:
+            print("❌ Username already exists!")
             return jsonify(success=False, message="Username already exists"), 400
 
-        # Insert the user into the database
-        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)",
-                       (data['username'], data['password']))
-        conn.commit()  # Commit the changes to the database
+        # Insert the new user
+        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (data['username'], data['password']))
+        conn.commit()
+
+        print("✅ Registration successful!")
         return jsonify(success=True, message="User registered successfully")
 
     except mysql.connector.Error as e:
@@ -54,8 +68,10 @@ def register():
         print("❌ General Error:", e)
         return jsonify(success=False, message=f"Unexpected error: {str(e)}"), 500
     finally:
-        cursor.close()
-        conn.close()
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 
 if __name__ == "__main__":
