@@ -2,13 +2,18 @@ from flask import Flask, request, jsonify
 import mysql.connector
 import os
 from dotenv import load_dotenv
-import mysql.connector
+from flask_cors import CORS  # Import CORS
+
 print("MySQL Connector is installed and working!")
+
 # Load environment variables from the .env file
 load_dotenv()
 
+# Initialize Flask app
 Server = Flask(__name__)
 
+# Enable CORS *after* defining Flask app
+CORS(Server)
 
 def get_db_connection():
     try:
@@ -18,18 +23,17 @@ def get_db_connection():
         print("🔹 MYSQL_USER:", os.getenv('MYSQL_USER'))
 
         conn = mysql.connector.connect(
-            host=os.getenv('MYSQL_HOST', 'mysql.railway.internal'),
-            port=int(os.getenv('MYSQL_PORT', 3306)),  # Default to 3307 if not set
-            user=os.getenv('MYSQL_USER', 'root'),
-            password=os.getenv('MYSQL_PASSWORD', 'Programmer01!'),
-            database=os.getenv('MYSQL_DATABASE', 'railway')
+            host=os.getenv('MYSQL_HOST'),
+            port=int(os.getenv('MYSQL_PORT')),
+            user=os.getenv('MYSQL_USER'),
+            password=os.getenv('MYSQL_PASSWORD'),
+            database=os.getenv('MYSQL_DATABASE')
         )
         print("✅ MySQL connection successful!")
         return conn
     except mysql.connector.Error as e:
         print("❌ MySQL Connection Error:", e)
         return None
-
 
 @Server.route('/register', methods=['POST'])
 def register():
@@ -76,7 +80,6 @@ def register():
             cursor.close()
         if 'conn' in locals():
             conn.close()
-
 
 if __name__ == "__main__":
     Server.run(host='0.0.0.0', port=8000)
