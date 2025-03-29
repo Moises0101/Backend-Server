@@ -8,3 +8,4 @@ mysql-connector-python==9.2.0  # ✅ Ensure this is included!
 packaging==24.2
 Werkzeug==3.1.3
 python-dotenv
+flask-cors
