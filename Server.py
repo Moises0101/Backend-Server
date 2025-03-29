@@ -4,10 +4,19 @@ import os
 from dotenv import load_dotenv
 from flask_cors import CORS  # Import CORS
 
-print("MySQL Connector is installed and working!")
+print("🔹 MySQL Connector is installed and working!")
 
 # Load environment variables from the .env file
-load_dotenv()
+if not load_dotenv():
+    print("⚠️ Warning: .env file not found or failed to load!")
+
+# Debugging: Print loaded environment variables
+print("🔹 ENV VARIABLES CHECK")
+print("🔹 MYSQL_HOST:", os.getenv('MYSQLHOST'))
+print("🔹 MYSQL_PORT:", os.getenv('MYSQLPORT'))
+print("🔹 MYSQL_USER:", os.getenv('MYSQLUSER'))
+print("🔹 MYSQL_PASSWORD:", "********")  # Masked for security
+print("🔹 MYSQL_DATABASE:", os.getenv('MYSQLDATABASE'))
 
 # Initialize Flask app
 Server = Flask(__name__)
@@ -16,18 +25,15 @@ Server = Flask(__name__)
 CORS(Server)
 
 def get_db_connection():
+    """ Establishes and returns a MySQL database connection. """
     try:
-        print("🔹 ENV VARIABLES CHECK")  # Debugging
-        print("🔹 MYSQL_HOST:", os.getenv('MYSQL_HOST'))
-        print("🔹 MYSQL_PORT:", os.getenv('MYSQL_PORT'))
-        print("🔹 MYSQL_USER:", os.getenv('MYSQL_USER'))
-
+        print("🔹 Attempting to connect to MySQL...")
         conn = mysql.connector.connect(
-            host=os.getenv('MYSQL_HOST'),
-            port=int(os.getenv('MYSQL_PORT')),
-            user=os.getenv('MYSQL_USER'),
-            password=os.getenv('MYSQL_PASSWORD'),
-            database=os.getenv('MYSQL_DATABASE')
+            host=os.getenv('MYSQLHOST'),
+            port=int(os.getenv('MYSQLPORT')),
+            user=os.getenv('MYSQLUSER'),
+            password=os.getenv('MYSQLPASSWORD'),
+            database=os.getenv('MYSQLDATABASE')
         )
         print("✅ MySQL connection successful!")
         return conn
@@ -35,8 +41,17 @@ def get_db_connection():
         print("❌ MySQL Connection Error:", e)
         return None
 
+# Manual MySQL connection test before running Flask
+test_conn = get_db_connection()
+if test_conn:
+    test_conn.close()
+else:
+    print("❌ MySQL connection test failed! Check your database credentials.")
+    exit(1)  # Stop the script if MySQL connection fails
+
 @Server.route('/register', methods=['POST'])
 def register():
+    """ Handles user registration with basic validation. """
     print("🔹 Received a registration request")  # Debugging log
 
     try:
@@ -82,4 +97,4 @@ def register():
             conn.close()
 
 if __name__ == "__main__":
-    Server.run(host='0.0.0.0', port=8000)
+    Server.run(host='0.0.0.0', port=8000, debug=True)  # Debug mode enabled
