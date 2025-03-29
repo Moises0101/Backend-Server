@@ -12,15 +12,19 @@ Server = Flask(__name__)
 
 def get_db_connection():
     try:
-        print("🔹 Attempting MySQL connection...")  # Debugging log
+        print("🔹 ENV VARIABLES CHECK")  # Debugging
+        print("🔹 MYSQL_HOST:", os.getenv('MYSQL_HOST'))
+        print("🔹 MYSQL_PORT:", os.getenv('MYSQL_PORT'))
+        print("🔹 MYSQL_USER:", os.getenv('MYSQL_USER'))
+
         conn = mysql.connector.connect(
-            host=os.getenv('MYSQL_HOST', 'localhost'),
-            port=int(os.getenv('MYSQL_PORT', 3307)),
+            host=os.getenv('MYSQL_HOST', 'mysql.railway.internal'),
+            port=int(os.getenv('MYSQL_PORT', 3306)),  # Default to 3307 if not set
             user=os.getenv('MYSQL_USER', 'root'),
             password=os.getenv('MYSQL_PASSWORD', 'Programmer01!'),
-            database=os.getenv('MYSQL_DATABASE', 'login_system')
+            database=os.getenv('MYSQL_DATABASE', 'railway')
         )
-        print("✅ MySQL connection successful!")  # Debugging log
+        print("✅ MySQL connection successful!")
         return conn
     except mysql.connector.Error as e:
         print("❌ MySQL Connection Error:", e)
