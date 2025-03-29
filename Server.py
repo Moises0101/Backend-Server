@@ -98,3 +98,52 @@ def register():
 
 if __name__ == "__main__":
     Server.run(host='0.0.0.0', port=8000, debug=True)  # Debug mode enabled
+
+@Server.route('/login', methods=['POST'])
+def login():
+    """Handles user login."""
+    print("🔹 Received a login request")  # Debugging log
+
+    try:
+        data = request.get_json()
+        print("📥 Received Data:", data)  # Debugging log
+
+        if not data or 'username' not in data or 'password' not in data:
+            print("❌ Invalid input data!")
+            return jsonify(success=False, message="Invalid input"), 400
+
+        conn = get_db_connection()
+        if not conn:
+            print("❌ Database connection failed!")
+            return jsonify(success=False, message="Database connection failed"), 500
+
+        cursor = conn.cursor()
+
+        # Check if the username exists
+        cursor.execute("SELECT * FROM users WHERE username=%s", (data['username'],))
+        user = cursor.fetchone()
+
+        if not user:
+            print("❌ Username not found!")
+            return jsonify(success=False, message="Invalid username or password"), 401
+
+        # Check if the password matches (⚠️ In production, use hashed passwords!)
+        stored_password = user[2]  # Assuming password is the 3rd column in DB
+        if stored_password != data['password']:
+            print("❌ Incorrect password!")
+            return jsonify(success=False, message="Invalid username or password"), 401
+
+        print("✅ Login successful!")
+        return jsonify(success=True, message="Login successful")
+
+    except mysql.connector.Error as e:
+        print("❌ MySQL Error:", e)
+        return jsonify(success=False, message=f"Database error: {str(e)}"), 500
+    except Exception as e:
+        print("❌ General Error:", e)
+        return jsonify(success=False, message=f"Unexpected error: {str(e)}"), 500
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
