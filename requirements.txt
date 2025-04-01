@@ -1,11 +1,26 @@
 colorama==0.4.6
+# This package helps to add color and style to terminal text. It makes it easier to add colored output on various platforms (Windows, Linux, macOS) in a way that's cross-platform compatible.
+
 Flask==3.1.0
+# Flask is a micro web framework for Python. It's simple and lightweight, making it easy to build web applications with minimal setup. Flask handles routing, request handling, and responses but leaves much of the web app structure up to the developer, which makes it highly flexible.
+
 gunicorn==23.0.0
+# Gunicorn is a Python WSGI HTTP server for UNIX. It's used to serve Python web applications, especially those built with frameworks like Flask. Gunicorn serves the Flask app in a production environment, handling multiple requests concurrently.
+
 itsdangerous==2.2.0
+# This package is a library for cryptographic signing of data. It's used for securely handling tokens and session management in web applications. Flask uses `itsdangerous` to sign cookies and other secure data to prevent tampering.
+
 Jinja2==3.1.6
+# Jinja2 is a templating engine for Python. It's used to generate dynamic HTML, XML, or other markup formats by using templates. Flask uses Jinja2 to render HTML templates, allowing you to inject Python variables into HTML pages.
+
 MarkupSafe==3.0.2
+# MarkupSafe is a library for handling HTML and XML data in a safe way. It ensures that strings containing markup are escaped to prevent security issues like XSS (Cross-Site Scripting). It's used by Jinja2 to escape variables when rendering templates.
+
 mysql-connector-python==9.2.0  # ✅ Ensure this is included!
+# This package provides a connector to interact with MySQL databases from Python. It's used to perform database operations such as queries, inserts, updates, and more. It's critical if your application requires persistent storage with MySQL.
+
 packaging==24.2
+# The `packaging` package provides tools for working with Python package versioning. It's often used to handle version parsing and validation, ensuring that your project dependencies are properly managed.
+
 Werkzeug==3.1.3
-python-dotenv
-Flask-Cors==4.0.0
+# Werkzeug is a comprehensive WSGI web application library. It provides the underlying functionality needed by Flask, including request handling, URL routing, and response generation. It forms the core of Flask's web server stack.
